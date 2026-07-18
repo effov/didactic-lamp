@@ -4,6 +4,14 @@ Position Sizing Calculator for Trading
 Demonstrates: Dictionaries, Functions, Parameter Passing, and Risk Management
 """
 
+# Read configuration from file
+with open("config.txt", "r") as file:
+    lines = file.readlines()
+
+# Parse the lines into variables
+account_balance = float(lines[0].strip().split("=")[1])
+risk_percentage = float(lines[1].strip().split("=")[1])
+
 # Define a dictionary with trade setup parameters
 trade_setup = {
     "symbol": "BTCUSDT",
@@ -51,16 +59,17 @@ def calculate_position_size(data):
     stop_loss = data["stop_loss"]
     side = data["side"]
     
-    # Calculate risk per unit
+    # Calculate risk per unit with enhanced error handling
     if side == "long":
         risk_per_unit = entry_price - stop_loss
-    else:  # short position
+    elif side == "short":
         risk_per_unit = stop_loss - entry_price
+    else:
+        print(f"CRITICAL ERROR: Unknown side '{side}'. Cannot calculate risk.")
+        return 0  # Stop the bot from placing a bad order
     
-    # Account risk parameters
-    account_balance = 10000  # $10,000 account
-    risk_percentage = 0.02   # Risk 2% per trade
-    risk_amount = account_balance * risk_percentage  # $200
+    # Calculate risk amount from config values
+    risk_amount = account_balance * risk_percentage
     
     # Calculate position size
     position_size = risk_amount / risk_per_unit
@@ -72,6 +81,7 @@ def calculate_position_size(data):
     print(f"  Risk per Trade: {risk_percentage * 100}% = ${risk_amount}")
     print(f"  Entry Price: ${entry_price:,}")
     print(f"  Stop Loss: ${stop_loss:,}")
+    print(f"  Trade Side: {side.upper()}")
     print(f"  Risk per Unit: ${risk_per_unit}")
     print(f"  Position Size: {position_size:.4f} units")
     
